@@ -1,0 +1,54 @@
+#!/bin/bash
+
+function help {
+cat <<HELP
+USAGE ./ebook_search [ --search keywords | --add repository ]
+
+Ebook search tool on online Calibre sharing servers.
+
+  -s,	--search 	Keywords to find matching titles
+  -a,	--add 		Add the repository (hint. To find online servers 
+  			  use this: https://www.google.com/search?q=inurl:browse/category/allbooks)
+  -h,	--help 		Print this help.
+
+HELP
+}
+
+[[ ! -n "$1" ]] && help && exit 1
+
+while [ $# -gt 0 ]
+do
+    case "$1" in
+		--help | -h )
+			help
+			exit 0
+		;;
+		--search | -s )
+			shift
+			search=true
+			query="$1"
+		;;
+		--add | -a )
+			shift
+			repository="$1"
+		;;
+    esac
+    shift
+done
+
+function ebook_search {
+	server=$1
+	serv_esc=$(echo $server | sed 's/\//\\\//g')
+	query=$2
+	wget -qO- -t 1 --timeout=20 "$server/browse/search?query=$query" | grep -oP '\[(\d+((,\s)?))*\]' | while read ln; do (echo $(tput setaf 5; tput bold;)"Results will be displayed here, please wait...$(tput sgr0) (use arrows to scroll, press \"q\" or ^C to skip to the next page)" & wget -qO- -t 1 --timeout=20 "$server/browse/booklist_page?ids=$ln" | sed 's/\\"/"/g' | sed 's/\\n/\n/g' | grep -P 'class="(read|title|tags)"|href="\/browse\/book' | grep -oP '(\/get\/[^"]+|\/browse\/book\/[^"]+|"title"><strong>.*?<\/strong>|<\/strong>.*?<\/div>)' | sed 's/<\/*strong>//g' | sed "s/\"title\">\(.*\)/Title:\t$(tput bold;)\1$(tput sgr0)/g" | sed "s/\(.*\)<\/div>/Tags:\t$(tput setaf 2; tput bold;)\1$(tput sgr0)/g" | sed 's/&amp;/\&/g' | sed "s/\/get/$serv_esc\/get/g" | sed 's/http/\nhttp/g' | sed "s/http\(.*\)/Book:\t$(tput setaf 1; tput bold;)http\1$(tput sgr0)/g" | sed "s/\(\/browse\/book.*\)/Link:\t$serv_esc\1/g") | less -RK; done;
+}
+
+[[ $search && ! -n $query ]] && echo "invalid search query" && exit 1
+[[ $search ]] && (cat repositories | while read rep; do echo searching \"$query\" in $rep..; ebook_search $rep $query; done;) && exit 0
+echo cheking repository...
+[[ ! $repository =~ ^http ]] && repository=http://$repository
+[[ $(grep -c $repository repositories) -ne 0 ]] && echo "This repository already exists" && exit 0
+! wget --spider -q -t 1 --timeout=20 $repository && echo "invalid or offline repository URL (example of valid URL http://8.8.8.8:8080), will not be added (retry later)" && exit 1
+echo $repository >> repositories
+echo Added
+
