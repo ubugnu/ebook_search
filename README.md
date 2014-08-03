@@ -1,4 +1,4 @@
-# Ebook search tool on Calibre public online servers
+# Ebook search tool on [Calibre](calibre-ebook.com) public online servers
 
 This is a simple tool that allows you to:
 
