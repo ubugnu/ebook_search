@@ -1,5 +1,11 @@
 #!/bin/bash
 
+function chek_reps {
+	[[ ! -f ~/.ebook_search_reps ]] && echo -e "http://caltsardragon.com:8080\nhttp://14.139.43.151:8080\nhttp://backroom.coldsilence.net:8081\nhttp://thor.desertflood.com/jbooks\nhttp://edmundmulligan.unusualperson.com:8081\nhttp://books4all.cc:8080\nhttp://kserve.info\nhttp://staubig.com:18080\nhttp://home.doctordont.com\nhttp://www.harlan.lib.ia.us:8080\nhttp://www.dayhomeimprovements.com:8080\nhttp://timothy.thebestfamily.org:8080\nhttp://www.fiuwebook.it/libri\nhttp://books.jimmclain.com:8080\nhttp://fartinginelevators.com/calibre\nhttp://library.hacklabos.org\nhttp://ebook.freenux.fr/ebook\nhttp://grumpy.gcsu.edu:8080\nhttps://knihovna.happz.cz\nhttp://sachmoi.mobi\nhttp://41.222.4.167:8010\nhttp://www.silverdragons.net\nhttp://harbers.dyndns.info:8181\nhttp://ringo.jpunix.net:8080\nhttp://dyn.infomath.de:8080\nhttp://www.lefttoright.net:88\nhttp://41.86.178.42:8080\nhttp://zerosixzero.duckdns.org:8080\nhttp://books.assyrianlibrary.co.uk\nhttp://drhennessey.dyndns-home.com\nhttp://digitalmccullough.com\nhttp://jiksnu.com\nhttp://www.filousite.eu.org:8080\nhttp://111.68.111.195:8080\nhttp://75.149.3.177:5555\nhttp://cl0ud.us:81\nhttp://tranquilbase.org:9111\nhttp://tfg.unex.es:8082\nhttp://ucdo.bfu.bg:8080\nhttp://cyjambo.hopto.org:8111\nhttp://n3wton.net:2020\nhttp://163.117.147.137:8080\nhttp://vaneeden.homeserver.com:8080\nhttp://mickey.famille-tachet.org:8081\nhttp://hibouk.lfip.net.cn:8085\nhttp://187.12.213.182:83\nhttp://bakasaru.fr:81\nhttp://pelikaan.diskstation.me:8046\nhttps://calibre.sejanus.me\nhttp://geekgalaxy.org:8282\nhttp://www.boulter.ca\nhttp://library.brianandraimee.com\nhttp://99.166.111.252:8080\nhttp://www.iucl.org:9090\nhttp://martynpetrie.ddns.net:5735\nhttp://72.129.66.45:8843\nhttp://a.ns.phatforge.com\nhttp://tetenfer.com:8081\nhttp://ebooks.arkamax.es\nhttp://186.109.142.172:2600\nhttp://24.132.179.213:8078" > ~/.ebook_search_reps
+}
+
+chek_reps
+
 function help {
 cat <<HELP
 USAGE ./ebook_search [ --search keywords | --add repository ]
@@ -44,11 +50,11 @@ function ebook_search {
 }
 
 [[ $search && ! -n $query ]] && echo "invalid search query" && exit 1
-[[ $search ]] && (cat repositories | while read rep; do echo searching \"$query\" in $rep..; ebook_search $rep $query; done;) && exit 0
+[[ $search ]] && (cat ~/.ebook_search_reps | while read rep; do echo searching \"$query\" in $rep..; ebook_search $rep $query; done;) && exit 0
 echo cheking repository...
 [[ ! $repository =~ ^http ]] && repository=http://$repository
-[[ $(grep -c $repository repositories) -ne 0 ]] && echo "This repository already exists" && exit 0
+[[ $(grep -c $repository ~/.ebook_search_reps) -ne 0 ]] && echo "This repository already exists" && exit 0
 ! wget --spider -q -t 1 --timeout=20 $repository && echo "invalid or offline repository URL (example of valid URL http://8.8.8.8:8080), will not be added (retry later)" && exit 1
-echo $repository >> repositories
+echo $repository >> ~/.ebook_search_reps
 echo Added
 
