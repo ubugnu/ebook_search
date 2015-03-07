@@ -45,7 +45,7 @@ done
 function ebook_search {
 	server=$1
 	serv_esc=$(echo $server | sed 's/\//\\\//g')
-	query=$2
+	query="$2"
 	wget -qO- -t 1 --timeout=20 "$server/browse/search?query=$query" | grep -oP '\[(\d+((,\s)?))*\]' | while read ln; do (echo $(tput setaf 5; tput bold;)"Results will be displayed here, please wait...$(tput sgr0) (use arrows to scroll, press \"q\" or ^C to skip to the next page)" & wget -qO- -t 1 --timeout=20 "$server/browse/booklist_page?ids=$ln" | sed 's/\\"/"/g' | sed 's/\\n/\n/g' | grep -P 'class="(read|title|tags)"|href="\/browse\/book' | grep -oP '(\/get\/[^"]+|\/browse\/book\/[^"]+|"title"><strong>.*?<\/strong>|<\/strong>.*?<\/div>)' | sed 's/<\/*strong>//g' | sed "s/\"title\">\(.*\)/Title:\t$(tput bold;)\1$(tput sgr0)/g" | sed "s/\(.*\)<\/div>/Tags:\t$(tput setaf 2; tput bold;)\1$(tput sgr0)/g" | sed 's/&amp;/\&/g' | sed "s/\/get/$serv_esc\/get/g" | sed 's/http/\nhttp/g' | sed "s/http\(.*\)/Book:\t$(tput setaf 1; tput bold;)http\1$(tput sgr0)/g" | sed "s/\(\/browse\/book.*\)/Link:\t$serv_esc\1/g") | less -RK; done;
 }
 
